@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { getDefaultVessel, getVesselByName, getVesselNames, initializeMockData } from '../data/mockData'
+import apiService from '../services/api'
 import './Dashboard.css'
 
 function Dashboard({ onLogout, userRole }) {
@@ -9,33 +8,50 @@ function Dashboard({ onLogout, userRole }) {
   const [vesselNames, setVesselNames] = useState([])
   const [chartData, setChartData] = useState([])
   const [dateRange, setDateRange] = useState({ start: '', end: '' })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const navigate = useNavigate()
 
-  useEffect(() => {
-    // Initialize mock data
-    initializeMockData()
+  // Fetch vessel data from backend
+  const fetchVesselData = async (vessel = '', startDate = '', endDate = '') => {
+    setLoading(true)
+    setError('')
     
-    // Get vessel names
-    const names = getVesselNames()
-    setVesselNames(names)
-    
-    // Set default vessel
-    const defaultVessel = getDefaultVessel()
-    setSelectedVessel(defaultVessel)
-  }, [])
-
-  useEffect(() => {
-    if (selectedVessel) {
-      let data = getVesselByName(selectedVessel)
+    try {
+      const params = {}
+      if (vessel) params.vessel = vessel
+      if (startDate) params.start_date = startDate
+      if (endDate) params.end_date = endDate
       
-      // Filter by date range if set
-      if (dateRange.start && dateRange.end) {
-        data = data.filter(item => 
-          item.date >= dateRange.start && item.date <= dateRange.end
-        )
+      const data = await apiService.getVesselData(params)
+      
+      // Extract unique vessel names from the data
+      const uniqueVessels = [...new Set(data.map(item => item.vessel_name))]
+      setVesselNames(uniqueVessels)
+      
+      // Set default vessel if none selected
+      if (!selectedVessel && uniqueVessels.length > 0) {
+        setSelectedVessel(uniqueVessels[0])
       }
       
       setChartData(data)
+    } catch (error) {
+      setError('Failed to fetch vessel data')
+      console.error('Error fetching vessel data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    // Initial data fetch
+    fetchVesselData()
+  }, [])
+
+  useEffect(() => {
+    // Fetch data when vessel selection or date range changes
+    if (selectedVessel || dateRange.start || dateRange.end) {
+      fetchVesselData(selectedVessel, dateRange.start, dateRange.end)
     }
   }, [selectedVessel, dateRange])
 
@@ -122,55 +138,58 @@ function Dashboard({ onLogout, userRole }) {
         </div>
 
         <div className="chart-container">
-          <h2>Hire vs Market Rate (Hover to see HS Code)</h2>
+          <h2>Hire vs Market Rate (Charts temporarily disabled)</h2>
+          
+          {error && (
+            <div style={{ 
+              background: '#f8d7da', 
+              color: '#721c24', 
+              padding: '10px', 
+              borderRadius: '4px',
+              marginBottom: '10px'
+            }}>
+              {error}
+            </div>
+          )}
+          
           <div className="chart-wrapper">
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                <XAxis 
-                  dataKey="date" 
-                  stroke="#666"
-                  tick={{ fontSize: 12 }}
-                />
-                <YAxis 
-                  stroke="#666"
-                  tick={{ fontSize: 12 }}
-                  label={{ value: 'Rate (₹)', angle: -90, position: 'insideLeft' }}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    background: 'white', 
-                    border: '1px solid #ccc',
-                    borderRadius: '8px',
-                    padding: '10px'
-                  }}
-                />
-                <Legend 
-                  wrapperStyle={{ paddingTop: '20px' }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="hire_rate" 
-                  stroke="#fbbf24" 
-                  strokeWidth={3}
-                  name="Hire Rate"
-                  dot={{ fill: '#fbbf24', r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="market_rate" 
-                  stroke="#3b82f6" 
-                  strokeWidth={3}
-                  name="Market Rate"
-                  dot={{ fill: '#3b82f6', r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            {loading ? (
+              <div style={{ 
+                height: '400px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                background: '#f8f9fa',
+                border: '2px dashed #dee2e6',
+                borderRadius: '8px',
+                color: '#6c757d'
+              }}>
+                <div style={{ textAlign: 'center' }}>
+                  <h3>Loading...</h3>
+                  <p>Fetching data from backend...</p>
+                </div>
+              </div>
+            ) : (
+              <div style={{ 
+                height: '400px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                background: '#f8f9fa',
+                border: '2px dashed #dee2e6',
+                borderRadius: '8px',
+                color: '#6c757d'
+              }}>
+                <div style={{ textAlign: 'center' }}>
+                  <h3>Chart Visualization</h3>
+                  <p>Charts will be restored once recharts dependency is fixed</p>
+                  <p>Data points: {chartData.length}</p>
+                </div>
+              </div>
+            )}
           </div>
 
-          {chartData.length === 0 && (
+          {chartData.length === 0 && !loading && (
             <div className="no-data">
               No data available for the selected date range
             </div>

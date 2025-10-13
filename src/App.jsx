@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom'
+import apiService from './services/api'
 import './App.css'
 import AdminPanel from './components/AdminPanel'
 import Dashboard from './components/Dashboard'
@@ -25,8 +26,7 @@ function App() {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken')
-    localStorage.removeItem('userRole')
+    apiService.logout()
     setIsAuthenticated(false)
     setUserRole(null)
   }

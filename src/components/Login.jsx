@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { mockUsers } from '../data/mockData'
+import apiService from '../services/api'
 import './Login.css'
 
 function Login({ onLogin }) {
@@ -9,24 +9,22 @@ function Login({ onLogin }) {
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
-    // Check credentials against mock users
-    const user = mockUsers.find(
-      u => u.username === username && u.password === password
-    )
-
-    if (user) {
-      // Store token and role in localStorage
-      const token = `mock-jwt-token-${Date.now()}`
-      localStorage.setItem('authToken', token)
-      localStorage.setItem('userRole', user.role)
+    try {
+      // Call backend API for authentication
+      const response = await apiService.login(username, password)
       
-      onLogin(user.role)
+      // Determine user role based on token claims or fallback logic
+      // For now, we'll use a simple approach - admin if username is 'admin'
+      const userRole = username === 'admin' ? 'admin' : 'user'
+      localStorage.setItem('userRole', userRole)
+      
+      onLogin(userRole)
       navigate('/dashboard')
-    } else {
+    } catch (error) {
       setError('Invalid username or password')
     }
   }
