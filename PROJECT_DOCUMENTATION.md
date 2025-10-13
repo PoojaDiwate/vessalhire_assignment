@@ -372,3 +372,4 @@ Your VesselHire Dashboard is fully functional with all features implemented:
 - Backend API: http://localhost:8000
 - Admin Panel: http://localhost:8000/admin/
 
+
