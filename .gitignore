@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Dependencies
 node_modules
 /.pnp
@@ -29,12 +30,54 @@ __pycache__/
 *.db
 
 # IDEs
+=======
+# Python Virtual Environment
+venv/
+env/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Django
+*.log
+*.pot
+*.pyc
+db.sqlite3
+db.sqlite3-journal
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+>>>>>>> 35f97faf75b0bde6a3a239fe27f95226a6301038
 .vscode/
 .idea/
 *.swp
 *.swo
+<<<<<<< HEAD
 
 
 
 
 node_modules
+=======
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node modules (for React frontend)
+node_modules/
+
+# Build files
+dist/
+build/
+*.egg-info/
+
+>>>>>>> 35f97faf75b0bde6a3a239fe27f95226a6301038

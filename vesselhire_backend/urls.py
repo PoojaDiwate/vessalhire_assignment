@@ -16,13 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from vessels.views import vessel_data, vessel_aggregate
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from vessels.views import vessel_data, vessel_aggregate, CustomTokenObtainPairView
+from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/vessels/', vessel_data, name='vessel-data'),
     path('api/vessels/aggregate/', vessel_aggregate, name='vessel-aggregate'),
-    path('api/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
