@@ -10,10 +10,10 @@ function App() {
   const [userRole, setUserRole] = useState(null)
 
   useEffect(() => {
-    // Check if user is already logged in
+    // Check if user is already logged in (for when they navigate directly to protected routes)
     const token = localStorage.getItem('authToken')
     const role = localStorage.getItem('userRole')
-    if (token) {
+    if (token && role) {
       setIsAuthenticated(true)
       setUserRole(role)
     }
@@ -54,11 +54,11 @@ function App() {
           path="/admin" 
           element={
             isAuthenticated && userRole === 'admin' ? 
-            <AdminPanel onLogout={handleLogout} /> : 
+            <AdminPanel onLogout={handleLogout} userRole={userRole} /> : 
             <Navigate to="/login" />
           } 
         />
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
   )

@@ -4,10 +4,11 @@
 }
 
 .dashboard-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: #f5f5f5;
+  color: #333;
   padding: 20px 40px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .header-content {
@@ -19,8 +20,10 @@
 }
 
 .header-content h1 {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 600;
+  color: #333;
+  margin: 0;
 }
 
 .header-actions {
@@ -28,34 +31,38 @@
   gap: 12px;
 }
 
-.admin-button,
-.logout-button {
-  padding: 10px 20px;
-  border: 2px solid white;
-  border-radius: 8px;
+.user-button {
+  padding: 8px 20px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
   font-weight: 600;
   font-size: 14px;
   transition: all 0.3s ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.user-button:hover {
+  background: #2563eb;
 }
 
 .admin-button {
-  background: white;
-  color: #667eea;
+  padding: 8px 16px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  margin-right: 12px;
 }
 
 .admin-button:hover {
-  background: transparent;
-  color: white;
-}
-
-.logout-button {
-  background: transparent;
-  color: white;
-}
-
-.logout-button:hover {
-  background: white;
-  color: #667eea;
+  background: #059669;
 }
 
 .dashboard-main {
@@ -185,6 +192,100 @@
 
 .stat-value.market {
   color: #3b82f6;
+}
+
+/* Date Range Slider */
+.date-range-slider {
+  margin-top: 20px;
+  padding: 10px 0;
+}
+
+.range-slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #3b82f6;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #3b82f6;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.range-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #3b82f6;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Data Table */
+.data-table-container {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.data-table th {
+  background: #f8f9fa;
+  color: #333;
+  font-weight: 600;
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 2px solid #e0e0e0;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+.data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #333;
+}
+
+.data-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+/* Vessel Name Colors */
+.vessel-name {
+  font-weight: 600;
+}
+
+.vessel-east-india,
+.vessel-east-bangkok,
+.vessel-default {
+  color: #333;
+}
+
+.vessel-northern-star {
+  color: #3b82f6;
+}
+
+.vessel-west-ocean {
+  color: #d97706;
 }
 
 @media (max-width: 768px) {

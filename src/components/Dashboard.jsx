@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { getVesselByName, getVesselNames, initializeMockData } from '../data/mockData'
+import { getDefaultVessel, getVesselByName, getVesselNames, initializeMockData } from '../data/mockData'
 import './Dashboard.css'
 
 function Dashboard({ onLogout, userRole }) {
@@ -19,10 +19,9 @@ function Dashboard({ onLogout, userRole }) {
     const names = getVesselNames()
     setVesselNames(names)
     
-    // Set first vessel as default
-    if (names.length > 0) {
-      setSelectedVessel(names[0])
-    }
+    // Set default vessel
+    const defaultVessel = getDefaultVessel()
+    setSelectedVessel(defaultVessel)
   }, [])
 
   useEffect(() => {
@@ -64,18 +63,18 @@ function Dashboard({ onLogout, userRole }) {
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div className="header-content">
-          <h1>🚢 Vessel Hire Dashboard</h1>
+          <h1>Vessel Market Dashboard</h1>
           <div className="header-actions">
             {userRole === 'admin' && (
               <button 
                 className="admin-button"
                 onClick={() => navigate('/admin')}
               >
-                ⚙️ Admin Panel
+                Admin Panel
               </button>
             )}
-            <button className="logout-button" onClick={handleLogout}>
-              Logout
+            <button className="user-button" onClick={handleLogout}>
+              {userRole === 'admin' ? 'Admin' : 'User'} - Logout
             </button>
           </div>
         </div>
@@ -84,7 +83,7 @@ function Dashboard({ onLogout, userRole }) {
       <main className="dashboard-main">
         <div className="controls-panel">
           <div className="control-group">
-            <label htmlFor="vessel-select">Select Vessel:</label>
+            <label htmlFor="vessel-select">Select Vessel</label>
             <select 
               id="vessel-select"
               value={selectedVessel} 
@@ -99,7 +98,7 @@ function Dashboard({ onLogout, userRole }) {
 
           <div className="date-range-group">
             <div className="control-group">
-              <label htmlFor="start-date">Start Date:</label>
+              <label htmlFor="start-date">From Date</label>
               <input
                 type="date"
                 id="start-date"
@@ -110,7 +109,7 @@ function Dashboard({ onLogout, userRole }) {
             </div>
 
             <div className="control-group">
-              <label htmlFor="end-date">End Date:</label>
+              <label htmlFor="end-date">To Date</label>
               <input
                 type="date"
                 id="end-date"
@@ -119,17 +118,11 @@ function Dashboard({ onLogout, userRole }) {
                 className="date-input"
               />
             </div>
-
-            {(dateRange.start || dateRange.end) && (
-              <button onClick={clearDateRange} className="clear-button">
-                Clear
-              </button>
-            )}
           </div>
         </div>
 
         <div className="chart-container">
-          <h2>Hire Rate vs Market Rate - {selectedVessel}</h2>
+          <h2>Hire vs Market Rate (Hover to see HS Code)</h2>
           <div className="chart-wrapper">
             <ResponsiveContainer width="100%" height={400}>
               <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
@@ -142,7 +135,7 @@ function Dashboard({ onLogout, userRole }) {
                 <YAxis 
                   stroke="#666"
                   tick={{ fontSize: 12 }}
-                  label={{ value: 'Rate ($)', angle: -90, position: 'insideLeft' }}
+                  label={{ value: 'Rate (₹)', angle: -90, position: 'insideLeft' }}
                 />
                 <Tooltip 
                   contentStyle={{ 
@@ -182,6 +175,43 @@ function Dashboard({ onLogout, userRole }) {
               No data available for the selected date range
             </div>
           )}
+
+          {/* Date Range Slider */}
+          <div className="date-range-slider">
+            <input
+              type="range"
+              className="range-slider"
+              min="0"
+              max="100"
+              defaultValue="50"
+            />
+          </div>
+        </div>
+
+        {/* Data Table */}
+        <div className="data-table-container">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>VESSEL</th>
+                <th>DATE</th>
+                <th>HIRE RATE</th>
+                <th>MARKET RATE</th>
+              </tr>
+            </thead>
+            <tbody>
+              {chartData.slice(0, 10).map((row, index) => (
+                <tr key={index}>
+                  <td className={`vessel-name vessel-${row.vessel_name?.toLowerCase().replace(/\s+/g, '-') || 'default'}`}>
+                    {row.vessel_name || selectedVessel}
+                  </td>
+                  <td>{row.date}</td>
+                  <td>₹ {row.hire_rate.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td>₹ {row.market_rate.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
         <div className="stats-panel">
@@ -195,14 +225,14 @@ function Dashboard({ onLogout, userRole }) {
               <div className="stat-card">
                 <h3>Avg Hire Rate</h3>
                 <p className="stat-value hire">
-                  ${Math.round(chartData.reduce((sum, d) => sum + d.hire_rate, 0) / chartData.length).toLocaleString()}
+                  ₹ {Math.round(chartData.reduce((sum, d) => sum + d.hire_rate, 0) / chartData.length).toLocaleString()}
                 </p>
               </div>
               
               <div className="stat-card">
                 <h3>Avg Market Rate</h3>
                 <p className="stat-value market">
-                  ${Math.round(chartData.reduce((sum, d) => sum + d.market_rate, 0) / chartData.length).toLocaleString()}
+                  ₹ {Math.round(chartData.reduce((sum, d) => sum + d.market_rate, 0) / chartData.length).toLocaleString()}
                 </p>
               </div>
             </>

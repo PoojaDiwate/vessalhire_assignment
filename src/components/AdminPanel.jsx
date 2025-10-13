@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { addVesselData, getVesselNames } from '../data/mockData'
 import './AdminPanel.css'
 
-function AdminPanel({ onLogout }) {
+function AdminPanel({ onLogout, userRole }) {
   const [formData, setFormData] = useState({
     vesselName: '',
     date: '',
@@ -22,16 +22,30 @@ function AdminPanel({ onLogout }) {
     try {
       const vesselName = isNewVessel ? formData.vesselName : formData.existingVessel
       
+      // Basic validation - just check if fields are filled
       if (!vesselName || !formData.date || !formData.hireRate || !formData.marketRate) {
-        setMessage({ type: 'error', text: 'Please fill in all fields' })
+        return // Just return without showing error message
+      }
+
+      // Validate that rates are valid numbers
+      const hireRateNum = parseFloat(formData.hireRate)
+      const marketRateNum = parseFloat(formData.marketRate)
+      
+      if (isNaN(hireRateNum) || isNaN(marketRateNum)) {
+        setMessage({ type: 'error', text: 'Please enter valid numeric values for rates' })
+        return
+      }
+
+      if (hireRateNum < 0 || marketRateNum < 0) {
+        setMessage({ type: 'error', text: 'Rates cannot be negative' })
         return
       }
 
       addVesselData(
         vesselName,
         formData.date,
-        formData.hireRate,
-        formData.marketRate
+        hireRateNum,
+        marketRateNum
       )
 
       setMessage({ 
@@ -71,16 +85,16 @@ function AdminPanel({ onLogout }) {
     <div className="admin-container">
       <header className="admin-header">
         <div className="header-content">
-          <h1>⚙️ Admin Panel</h1>
+          <h1>Admin Panel</h1>
           <div className="header-actions">
             <button 
               className="dashboard-button"
               onClick={() => navigate('/dashboard')}
             >
-              📊 Dashboard
+              Dashboard
             </button>
             <button className="logout-button" onClick={handleLogout}>
-              Logout
+              {userRole === 'admin' ? 'Admin' : 'User'} - Logout
             </button>
           </div>
         </div>
@@ -143,45 +157,41 @@ function AdminPanel({ onLogout }) {
               </div>
             )}
 
-            <div className="form-group">
-              <label htmlFor="date">Date</label>
-              <input
-                type="date"
-                id="date"
-                name="date"
-                value={formData.date}
-                onChange={handleChange}
-                required
-              />
-            </div>
+              <div className="form-group">
+                <label htmlFor="date">Date</label>
+                <input
+                  type="date"
+                  id="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="hireRate">Hire Rate ($)</label>
+                <label htmlFor="hireRate">Hire Rate (₹)</label>
                 <input
-                  type="number"
+                  type="text"
                   id="hireRate"
                   name="hireRate"
                   value={formData.hireRate}
                   onChange={handleChange}
-                  placeholder="e.g., 15000"
-                  min="0"
-                  step="100"
+                  placeholder="e.g., 4500"
                   required
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="marketRate">Market Rate ($)</label>
+                <label htmlFor="marketRate">Market Rate (₹)</label>
                 <input
-                  type="number"
+                  type="text"
                   id="marketRate"
                   name="marketRate"
                   value={formData.marketRate}
                   onChange={handleChange}
-                  placeholder="e.g., 18000"
-                  min="0"
-                  step="100"
+                  placeholder="e.g., 5200"
                   required
                 />
               </div>

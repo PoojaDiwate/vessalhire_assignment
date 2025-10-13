@@ -1,6 +1,6 @@
 // Mock vessel data - 3 vessels with 30 days of hire and market rates
 export const generateMockData = () => {
-  const vessels = ['Ocean Voyager', 'Sea Master', 'Wave Runner']
+  const vessels = ['East India', 'Northern Star', 'West Ocean']
   const mockData = {}
 
   vessels.forEach(vessel => {
@@ -12,16 +12,16 @@ export const generateMockData = () => {
       const currentDate = new Date(startDate)
       currentDate.setDate(currentDate.getDate() + i)
       
-      // Generate random but realistic rates
-      const baseHireRate = 15000 + Math.random() * 5000
-      const baseMarketRate = 18000 + Math.random() * 4000
+      // Generate random but realistic rates (₹3,000-7,000 range)
+      const baseHireRate = 3000 + Math.random() * 2000
+      const baseMarketRate = 3500 + Math.random() * 2000
       
       data.push({
         id: i + 1,
         vessel_name: vessel,
         date: currentDate.toISOString().split('T')[0],
-        hire_rate: Math.round(baseHireRate + Math.sin(i / 3) * 2000),
-        market_rate: Math.round(baseMarketRate + Math.cos(i / 4) * 1500)
+        hire_rate: Math.round(baseHireRate + Math.sin(i / 3) * 500),
+        market_rate: Math.round(baseMarketRate + Math.cos(i / 4) * 400)
       })
     }
     
@@ -55,6 +55,12 @@ export const getVesselByName = (vesselName) => {
 export const getVesselNames = () => {
   const allData = getVesselData()
   return Object.keys(allData)
+}
+
+// Set default vessel for UI (East India)
+export const getDefaultVessel = () => {
+  const vesselNames = getVesselNames()
+  return vesselNames.includes('East India') ? 'East India' : vesselNames[0]
 }
 
 // Add new vessel data (for admin)

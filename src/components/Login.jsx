@@ -35,7 +35,7 @@ function Login({ onLogin }) {
     <div className="login-container">
       <div className="login-box">
         <div className="login-header">
-          <h1>🚢 Vessel Hire Dashboard</h1>
+          <h1>Vessel Market Dashboard</h1>
           <p>Sign in to access your dashboard</p>
         </div>
 
