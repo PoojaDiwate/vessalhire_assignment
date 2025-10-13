@@ -176,16 +176,6 @@ function Dashboard({ onLogout, userRole }) {
             </div>
           )}
 
-          {/* Date Range Slider */}
-          <div className="date-range-slider">
-            <input
-              type="range"
-              className="range-slider"
-              min="0"
-              max="100"
-              defaultValue="50"
-            />
-          </div>
         </div>
 
         {/* Data Table */}
