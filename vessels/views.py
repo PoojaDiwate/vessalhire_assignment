@@ -10,15 +10,60 @@ from django.db.models import Sum
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def vessel_data(request):
     """
-    Return list of vessel data (optionally filtered by vessel_name and date range)
+    GET: Return list of vessel data (optionally filtered by vessel_name and date range)
+    POST: Add new vessel data (admin only)
     """
+    if request.method == 'POST':
+        # Check if user is admin
+        if not request.user.is_staff:
+            return Response({'error': 'Admin access required'}, status=403)
+        
+        # Get data from request
+        vessel_name = request.data.get('vessel_name')
+        date = request.data.get('date')
+        hire_rate = request.data.get('hire_rate')
+        market_rate = request.data.get('market_rate')
+        
+        # Validate required fields
+        if not all([vessel_name, date, hire_rate, market_rate]):
+            return Response({'error': 'All fields are required'}, status=400)
+        
+        # Create new vessel data (this APPENDS data, doesn't delete existing)
+        vessel = VesselData.objects.create(
+            vessel_name=vessel_name,
+            date=date,
+            hire_rate=int(hire_rate),
+            market_rate=int(market_rate)
+        )
+        
+        return Response({
+            'message': 'Vessel data added successfully',
+            'data': {
+                'id': vessel.id,
+                'vessel_name': vessel.vessel_name,
+                'date': vessel.date,
+                'hire_rate': vessel.hire_rate,
+                'market_rate': vessel.market_rate
+            }
+        }, status=201)
+    
+    # GET request
     vessel = request.GET.get('vessel')
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
+    
+    # DEBUG: Check database connection and data
+    try:
+        total_count = VesselData.objects.count()
+        print(f"✅ DATABASE CONNECTED: Total vessel records in DB: {total_count}")
+    except Exception as e:
+        print(f"❌ DATABASE ERROR: {e}")
+        return Response({'error': 'Database connection failed'}, status=500)
+    
     qs = VesselData.objects.all()
     if vessel:
         qs = qs.filter(vessel_name=vessel)
@@ -26,6 +71,7 @@ def vessel_data(request):
         qs = qs.filter(date__gte=start_date)
     if end_date:
         qs = qs.filter(date__lte=end_date)
+    
     data = [
         {
             'vessel_name': v.vessel_name,
@@ -35,6 +81,12 @@ def vessel_data(request):
         }
         for v in qs.order_by('date')
     ]
+    
+    # DEBUG: Show what data is being returned
+    print(f"✅ DATA FETCHED: Returning {len(data)} records (Filter: vessel={vessel}, start={start_date}, end={end_date})")
+    if len(data) > 0:
+        print(f"   Sample record: {data[0]}")
+    
     return Response(data)
 
 @api_view(['GET'])

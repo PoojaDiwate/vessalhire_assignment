@@ -1,7 +1,43 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import apiService from '../services/api'
 import './Dashboard.css'
+
+// Custom Tooltip Component
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="custom-tooltip" style={{
+        backgroundColor: 'white',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        padding: '10px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+      }}>
+        <p style={{ margin: '0 0 5px 0', fontWeight: 'bold' }}>{`Date: ${label}`}</p>
+        {payload.map((entry, index) => {
+          console.log('Tooltip entry:', entry) // Debug log
+          
+          // Check both dataKey and name properties
+          const dataKey = entry.dataKey || entry.name
+          const displayName = dataKey === 'hire_rate' ? 'Hire Rate' : 'Market Rate'
+          
+          return (
+            <p key={index} style={{ 
+              margin: '2px 0', 
+              color: entry.color,
+              fontSize: '14px'
+            }}>
+              {displayName}: ₹{entry.value.toLocaleString('en-IN')}
+            </p>
+          )
+        })}
+      </div>
+    )
+  }
+  return null
+}
 
 function Dashboard({ onLogout, userRole }) {
   const [selectedVessel, setSelectedVessel] = useState('')
@@ -12,7 +48,29 @@ function Dashboard({ onLogout, userRole }) {
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
-  // Fetch vessel data from backend
+  // Fetch all vessel names (for dropdown)
+  const fetchVesselNames = async () => {
+    try {
+      console.log('🔍 FRONTEND: Fetching all vessel names from API...')
+      const data = await apiService.getVesselData()
+      console.log(`✅ FRONTEND: Received ${data.length} total records from API`)
+      
+      const uniqueVessels = [...new Set(data.map(item => item.vessel_name))]
+      console.log(`✅ FRONTEND: Extracted ${uniqueVessels.length} unique vessels:`, uniqueVessels)
+      
+      setVesselNames(uniqueVessels)
+      
+      // Set default vessel if none selected
+      if (!selectedVessel && uniqueVessels.length > 0) {
+        setSelectedVessel(uniqueVessels[0])
+        console.log(`✅ FRONTEND: Default vessel set to: ${uniqueVessels[0]}`)
+      }
+    } catch (error) {
+      console.error('❌ FRONTEND ERROR: Failed to fetch vessel names:', error)
+    }
+  }
+
+  // Fetch vessel data from backend (filtered by vessel and date range)
   const fetchVesselData = async (vessel = '', startDate = '', endDate = '') => {
     setLoading(true)
     setError('')
@@ -23,34 +81,27 @@ function Dashboard({ onLogout, userRole }) {
       if (startDate) params.start_date = startDate
       if (endDate) params.end_date = endDate
       
+      console.log(`🔍 FRONTEND: Fetching vessel data with filters:`, params)
       const data = await apiService.getVesselData(params)
-      
-      // Extract unique vessel names from the data
-      const uniqueVessels = [...new Set(data.map(item => item.vessel_name))]
-      setVesselNames(uniqueVessels)
-      
-      // Set default vessel if none selected
-      if (!selectedVessel && uniqueVessels.length > 0) {
-        setSelectedVessel(uniqueVessels[0])
-      }
+      console.log(`✅ FRONTEND: Received ${data.length} filtered records for graph/table`)
       
       setChartData(data)
     } catch (error) {
       setError('Failed to fetch vessel data')
-      console.error('Error fetching vessel data:', error)
+      console.error('❌ FRONTEND ERROR: Failed to fetch vessel data:', error)
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    // Initial data fetch
-    fetchVesselData()
+    // Initial data fetch - get all vessel names first
+    fetchVesselNames()
   }, [])
 
   useEffect(() => {
     // Fetch data when vessel selection or date range changes
-    if (selectedVessel || dateRange.start || dateRange.end) {
+    if (selectedVessel) {
       fetchVesselData(selectedVessel, dateRange.start, dateRange.end)
     }
   }, [selectedVessel, dateRange])
@@ -138,7 +189,7 @@ function Dashboard({ onLogout, userRole }) {
         </div>
 
         <div className="chart-container">
-          <h2>Hire vs Market Rate (Charts temporarily disabled)</h2>
+          <h2>Hire vs Market Rate</h2>
           
           {error && (
             <div style={{ 
@@ -169,6 +220,41 @@ function Dashboard({ onLogout, userRole }) {
                   <p>Fetching data from backend...</p>
                 </div>
               </div>
+            ) : chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={400}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="date" 
+                    tick={{ fontSize: 12 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}k`}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="hire_rate" 
+                    stroke="#FFA500" 
+                    strokeWidth={2}
+                    dot={{ fill: '#FFA500', strokeWidth: 2, r: 4 }}
+                    name="hire_rate"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="market_rate" 
+                    stroke="#1E90FF" 
+                    strokeWidth={2}
+                    dot={{ fill: '#1E90FF', strokeWidth: 2, r: 4 }}
+                    name="market_rate"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             ) : (
               <div style={{ 
                 height: '400px', 
@@ -181,8 +267,8 @@ function Dashboard({ onLogout, userRole }) {
                 color: '#6c757d'
               }}>
                 <div style={{ textAlign: 'center' }}>
-                  <h3>Chart Visualization</h3>
-                  <p>Charts will be restored once recharts dependency is fixed</p>
+                  <h3>No Data Available</h3>
+                  <p>Select a vessel and date range to view charts</p>
                   <p>Data points: {chartData.length}</p>
                 </div>
               </div>

@@ -14,9 +14,19 @@ function App() {
     // Check if user is already logged in (for when they navigate directly to protected routes)
     const token = localStorage.getItem('authToken')
     const role = localStorage.getItem('userRole')
+    
+    console.log('🔍 APP: Checking authentication on load...')
+    console.log('🔍 APP: Token exists:', !!token)
+    console.log('🔍 APP: User role:', role)
+    
     if (token && role) {
+      // Update API service token
+      apiService.updateToken(token)
       setIsAuthenticated(true)
       setUserRole(role)
+      console.log('✅ APP: User authenticated as:', role)
+    } else {
+      console.log('⚠️ APP: No valid session found')
     }
   }, [])
 

@@ -35,9 +35,26 @@
   max-width: 1000px;
   margin: 0 auto;
   padding: 40px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.admin-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.admin-top-section {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 24px;
+  align-items: start;
+}
+
+.admin-chart-section {
+  width: 100%;
 }
 
 .admin-card {
@@ -241,10 +258,123 @@
   margin-right: 8px;
 }
 
+/* Chart Controls */
+.chart-controls {
+  margin-bottom: 24px;
+}
+
+.date-range-group {
+  display: flex;
+  gap: 16px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.control-group label {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.date-input {
+  padding: 10px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  min-width: 140px;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.clear-button {
+  padding: 10px 16px;
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  height: fit-content;
+}
+
+.clear-button:hover {
+  background: #4b5563;
+}
+
+/* Chart Container */
+.chart-container {
+  margin: 24px 0;
+}
+
+.chart-wrapper {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  background: #fafafa;
+}
+
+/* Chart Stats */
+.chart-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.chart-stats .stat-card {
+  text-align: center;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.chart-stats .stat-card h4 {
+  color: #666;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.chart-stats .stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  color: #333;
+}
+
+.chart-stats .stat-value.hire {
+  color: #FFA500;
+}
+
+.chart-stats .stat-value.market {
+  color: #1E90FF;
+}
+
 @media (max-width: 968px) {
   .admin-main {
-    grid-template-columns: 1fr;
     padding: 20px;
+  }
+
+  .admin-top-section {
+    grid-template-columns: 1fr;
   }
 
   .form-row {
@@ -259,6 +389,19 @@
     flex-direction: column;
     gap: 16px;
     align-items: flex-start;
+  }
+
+  .date-range-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .date-input {
+    min-width: auto;
+  }
+
+  .chart-stats {
+    grid-template-columns: 1fr;
   }
 }
 

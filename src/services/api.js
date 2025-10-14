@@ -53,18 +53,60 @@ class ApiService {
       const queryString = new URLSearchParams(params).toString()
       const url = `${API_BASE_URL}/vessels/${queryString ? `?${queryString}` : ''}`
       
+      console.log(`🔍 API SERVICE: Calling ${url}`)
+      console.log(`🔍 API SERVICE: Token available:`, !!this.token)
+      
       const response = await fetch(url, {
         method: 'GET',
         headers: this.getHeaders(),
       })
 
+      console.log(`✅ API SERVICE: Response status: ${response.status}`)
+
+      // Handle token expiration
+      if (response.status === 401) {
+        const errorData = await response.json()
+        console.error(`❌ API SERVICE: Token expired or invalid`)
+        
+        // Try to refresh token
+        try {
+          console.log('🔄 API SERVICE: Attempting to refresh token...')
+          await this.refreshToken()
+          
+          // Retry the request with new token
+          console.log('🔄 API SERVICE: Retrying request with new token...')
+          const retryResponse = await fetch(url, {
+            method: 'GET',
+            headers: this.getHeaders(),
+          })
+          
+          if (!retryResponse.ok) {
+            throw new Error('Retry failed')
+          }
+          
+          const data = await retryResponse.json()
+          console.log(`✅ API SERVICE: Received ${data.length} records after refresh`)
+          return data
+        } catch (refreshError) {
+          console.error('❌ API SERVICE: Token refresh failed, logging out...')
+          this.logout()
+          window.location.href = '/login'
+          throw new Error('Session expired. Please login again.')
+        }
+      }
+
       if (!response.ok) {
+        const errorText = await response.text()
+        console.error(`❌ API SERVICE: API Error (${response.status}):`, errorText)
         throw new Error('Failed to fetch vessel data')
       }
 
-      return await response.json()
+      const data = await response.json()
+      console.log(`✅ API SERVICE: Received ${data.length} records`)
+      
+      return data
     } catch (error) {
-      console.error('Get vessel data error:', error)
+      console.error('❌ API SERVICE ERROR:', error)
       throw error
     }
   }
@@ -87,6 +129,32 @@ class ApiService {
       return await response.json()
     } catch (error) {
       console.error('Get aggregate data error:', error)
+      throw error
+    }
+  }
+
+  // Add vessel data (admin only)
+  async addVesselData(vesselName, date, hireRate, marketRate) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/vessels/`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({
+          vessel_name: vesselName,
+          date: date,
+          hire_rate: parseFloat(hireRate),
+          market_rate: parseFloat(marketRate)
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to add vessel data')
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Add vessel data error:', error)
       throw error
     }
   }
