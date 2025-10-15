@@ -1,0 +1,95 @@
+services:
+  # MS SQL Server Database
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: vesselhire_db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd123
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - vesselhire_network
+    restart: unless-stopped
+
+  # Django Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: vesselhire_backend
+    environment:
+      - DEBUG=False
+      - DATABASE_HOST=db
+      - DATABASE_PORT=1433
+      - DATABASE_NAME=vesselhire_db
+      - DATABASE_USER=sa
+      - DATABASE_PASSWORD=YourStrong@Passw0rd123
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend,nginx
+      - DJANGO_SETTINGS_MODULE=vesselhire_backend.settings_docker
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    networks:
+      - vesselhire_network
+    restart: unless-stopped
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             python manage.py runserver 0.0.0.0:8000"
+
+  # React Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: vesselhire_frontend
+    environment:
+      - REACT_APP_API_URL=http://localhost/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - vesselhire_network
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: vesselhire_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - vesselhire_network
+    restart: unless-stopped
+
+volumes:
+  mssql_data:
+    driver: local
+  static_volume:
+    driver: local
+  media_volume:
+    driver: local
+
+networks:
+  vesselhire_network:
+    driver: bridge
