@@ -43,7 +43,11 @@ services:
       - vesselhire_network
     restart: unless-stopped
     command: >
-      sh -c "python manage.py migrate &&
+      sh -c "echo 'Waiting for database...' &&
+             sleep 10 &&
+             python manage.py migrate &&
+             python manage.py create_demo_users &&
+             python manage.py seed_vessels &&
              python manage.py collectstatic --noinput &&
              python manage.py runserver 0.0.0.0:8000"
 

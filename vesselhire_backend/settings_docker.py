@@ -29,11 +29,19 @@ ALLOWED_HOSTS = [
     os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
 ]
 
-# Database configuration for Docker - temporarily using SQLite for testing
+# Database configuration for Docker - MS SQL Server
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': '/app/db.sqlite3',
+        'ENGINE': 'mssql',
+        'NAME': os.environ.get('DATABASE_NAME', 'vesselhire_db'),
+        'USER': os.environ.get('DATABASE_USER', 'sa'),
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD', 'YourStrong@Passw0rd123'),
+        'HOST': os.environ.get('DATABASE_HOST', 'db'),
+        'PORT': os.environ.get('DATABASE_PORT', '1433'),
+        'OPTIONS': {
+            'driver': 'ODBC Driver 18 for SQL Server',
+            'extra_params': 'TrustServerCertificate=yes;Encrypt=yes;',
+        },
     }
 }
 
@@ -89,12 +97,6 @@ LOGGING = {
         },
     },
     'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': '/app/logs/django.log',
-            'formatter': 'verbose',
-        },
         'console': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
@@ -102,17 +104,17 @@ LOGGING = {
         },
     },
     'root': {
-        'handlers': ['console', 'file'],
+        'handlers': ['console'],
         'level': 'INFO',
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': False,
         },
         'vessels': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': False,
         },
